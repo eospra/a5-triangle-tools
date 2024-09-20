@@ -19,6 +19,7 @@
 package triangle.contextualAnalyzer;
 
 import triangle.ErrorReporter;
+
 import triangle.StdEnvironment;
 import triangle.abstractSyntaxTrees.AbstractSyntaxTree;
 import triangle.abstractSyntaxTrees.Program;
@@ -40,6 +41,7 @@ import triangle.abstractSyntaxTrees.commands.IfCommand;
 import triangle.abstractSyntaxTrees.commands.LetCommand;
 import triangle.abstractSyntaxTrees.commands.SequentialCommand;
 import triangle.abstractSyntaxTrees.commands.WhileCommand;
+import triangle.abstractSyntaxTrees.commands.RepeatCommand;
 import triangle.abstractSyntaxTrees.declarations.BinaryOperatorDeclaration;
 import triangle.abstractSyntaxTrees.declarations.ConstDeclaration;
 import triangle.abstractSyntaxTrees.declarations.ConstantDeclaration;
@@ -185,6 +187,11 @@ public final class Checker implements ActualParameterVisitor<FormalParameter, Vo
 		checkAndReportError(eType.equals(StdEnvironment.booleanType), "Boolean expression expected here", ast.E);
 		ast.C.visit(this);
 
+		return null;
+	}
+	
+	@Override
+	public Void visitRepeatCommand(RepeatCommand ast, Void arg) {
 		return null;
 	}
 

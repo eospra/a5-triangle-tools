@@ -1,0 +1,48 @@
+let
+ type String ~ array 5 of Char;
+ const null ~ chr(0);
+ var a: Integer;
+ var b: Integer;
+ var sum: Integer;
+ var product: Integer;
+ var same: Boolean;
+
+ proc putstring (s: String) ~
+  let var i: Integer
+  in
+   begin
+   i := 0;
+   while s[i] \= null do
+    begin
+     put (s[i]);
+     i := i+1
+    end
+   end
+in
+
+ begin
+ getint (var a);
+ getint (var b);
+ sum := a + b;
+ product := a * b;
+
+ if (a = b) then
+  same := true
+ else
+  same := false;
+  
+ puteol ();
+ putint (a);
+ puteol ();
+ putint (b);
+ puteol ();
+ putint (sum);
+ puteol ();
+ putint (product);
+ puteol ();
+ if (same = true) then
+  putstring (['S', 'a', 'm', 'e', '!'])
+ else;
+ end
+ 
+

@@ -20,6 +20,7 @@ package triangle.treeDrawer;
 
 import java.awt.FontMetrics;
 
+
 import triangle.abstractSyntaxTrees.Program;
 import triangle.abstractSyntaxTrees.actuals.ConstActualParameter;
 import triangle.abstractSyntaxTrees.actuals.EmptyActualParameterSequence;
@@ -39,6 +40,7 @@ import triangle.abstractSyntaxTrees.commands.IfCommand;
 import triangle.abstractSyntaxTrees.commands.LetCommand;
 import triangle.abstractSyntaxTrees.commands.SequentialCommand;
 import triangle.abstractSyntaxTrees.commands.WhileCommand;
+import triangle.abstractSyntaxTrees.commands.RepeatCommand;
 import triangle.abstractSyntaxTrees.declarations.BinaryOperatorDeclaration;
 import triangle.abstractSyntaxTrees.declarations.ConstDeclaration;
 import triangle.abstractSyntaxTrees.declarations.FuncDeclaration;
@@ -158,6 +160,13 @@ public class LayoutVisitor implements ActualParameterVisitor<Void, DrawingTree>,
 
 	@Override
 	public DrawingTree visitWhileCommand(WhileCommand ast, Void obj) {
+		var d1 = ast.E.visit(this);
+		var d2 = ast.C.visit(this);
+		return layoutBinary("WhileCom.", d1, d2);
+	}
+	
+	@Override
+	public DrawingTree visitRepeatCommand(RepeatCommand ast, Void obj) {
 		var d1 = ast.E.visit(this);
 		var d2 = ast.C.visit(this);
 		return layoutBinary("WhileCom.", d1, d2);
