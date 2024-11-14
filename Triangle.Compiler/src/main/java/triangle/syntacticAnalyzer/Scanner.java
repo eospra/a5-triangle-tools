@@ -27,17 +27,17 @@ public final class Scanner {
 	private StringBuffer currentSpelling;
 	private boolean currentlyScanningToken;
 
-	private boolean isLetter(char c) {
+	public static boolean isLetter(char c) {
 		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 	}
 
-	private boolean isDigit(char c) {
+	public static boolean isDigit(char c) {
 		return (c >= '0' && c <= '9');
 	}
 
 	// isOperator returns true iff the given character is an operator character.
 
-	private boolean isOperator(char c) {
+	public static boolean isOperator(char c) {
 		return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '\\'
 				|| c == '&' || c == '@' || c == '%' || c == '^' || c == '?' || c == '|');
 	}
