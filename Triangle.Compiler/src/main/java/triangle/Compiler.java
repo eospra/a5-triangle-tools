@@ -18,6 +18,8 @@
 
 package triangle;
 
+import com.sampullara.cli.Argument;
+
 import triangle.abstractSyntaxTrees.Program;
 import triangle.codeGenerator.Emitter;
 import triangle.codeGenerator.Encoder;
@@ -35,12 +37,22 @@ import triangle.treeDrawer.Drawer;
  * @author Deryck F. Brown
  */
 public class Compiler {
-
-	/** The filename for the object program, normally obj.tam. */
-	static String objectName = "obj.tam";
 	
+	// the cli parser library lets us make instance variables with annotations like this
+	// that specify command line arguments for the program
+	
+	/** The filename for the object program, normally obj.tam. */
+	@Argument(alias = "o", description = "name of the source file", required = true)
+	static String objectName = "obj.tam";
+	    
+	@Argument(alias = "s", description = "whether to show the tree produced", required = false)
 	static boolean showTree = false;
+	
+	@Argument(alias = "f", description = "whether folding will be done", required = false)
 	static boolean folding = false;
+	
+	@Argument(alias = "a", description = "whether to show the tree after folding", required = false)
+	static boolean showTreeAfter = false;
 
 	private static Scanner scanner;
 	private static Parser parser;
@@ -117,6 +129,7 @@ public class Compiler {
 		return successful;
 	}
 
+	
 	/**
 	 * Triangle compiler main program.
 	 *
