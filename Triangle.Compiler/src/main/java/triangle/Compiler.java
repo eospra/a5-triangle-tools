@@ -78,7 +78,7 @@ public class Compiler {
 	 * @return true iff the source program is free of compile-time errors, otherwise
 	 *         false.
 	 */
-	static boolean compileProgram(String sourceName, String objectName, boolean showingAST, boolean showingTable) {
+	static boolean compileProgram(String sourceName, String objectName, boolean showingAST, boolean showingTable, boolean folding, boolean showingASTAfter) {
 
 		System.out.println("********** " + "Triangle Compiler (Java Version 2.1)" + " **********");
 
@@ -97,7 +97,7 @@ public class Compiler {
 		emitter = new Emitter(reporter);
 		encoder = new Encoder(emitter, reporter);
 		drawer = new Drawer();
-
+		
 		// scanner.enableDebugging();
 		theAST = parser.parseProgram(); // 1st pass
 		if (reporter.getNumErrors() == 0) {
@@ -111,8 +111,11 @@ public class Compiler {
 			}
 			if (folding) {
 				theAST.visit(new ConstantFolder());
+				if (showingASTAfter) {
+					drawer.draw(theAST);
+				}
 			}
-			
+		
 			if (reporter.getNumErrors() == 0) {
 				System.out.println("Code Generation ...");
 				encoder.encodeRun(theAST, showingTable); // 3rd pass
@@ -139,7 +142,7 @@ public class Compiler {
 	public static void main(String[] args) {
 
 		if (args.length < 1) {
-			System.out.println("Usage: tc filename [-o=outputfilename] [tree] [folding]");
+			System.out.println("Usage: tc filename [-o=outputfilename] [tree] [folding] [treeAfter]");
 			System.exit(1);
 		}
 		
@@ -147,7 +150,7 @@ public class Compiler {
 
 		String sourceName = args[0];
 		
-		var compiledOK = compileProgram(sourceName, objectName, showTree, false);
+		var compiledOK = compileProgram(sourceName, objectName, showTree, false, folding, showTreeAfter);
 
 		if (!showTree) {
 			System.exit(compiledOK ? 0 : 1);
@@ -163,6 +166,8 @@ public class Compiler {
 				objectName = s.substring(3);
 			} else if (sl.equals("folding")) {
 				folding = true;
+			} else if (sl.equals("treeafter")) {
+				showTreeAfter = true;
 			}
 		}
 	}
