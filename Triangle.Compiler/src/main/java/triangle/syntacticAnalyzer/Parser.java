@@ -313,7 +313,7 @@ public class Parser {
 					acceptIt();
 					// the variable name gets wrapped in a VnameExpression
 					VnameExpression vne = new VnameExpression(vAST, commandPos);
-					// the operator will be a + (each operator is just defined by its spelling)
+					// the operator will be a * (each operator is just defined by its spelling)
 					Operator op = new Operator("*", commandPos);
 					// now we assemble the expressions into a BinaryExpression for the a + 1
 					Expression eAST = new BinaryExpression(vne, op, vne, commandPos);
