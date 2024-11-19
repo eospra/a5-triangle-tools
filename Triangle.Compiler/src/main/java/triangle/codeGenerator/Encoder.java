@@ -106,6 +106,7 @@ import triangle.abstractSyntaxTrees.vnames.SimpleVname;
 import triangle.abstractSyntaxTrees.vnames.SubscriptVname;
 import triangle.abstractSyntaxTrees.vnames.Vname;
 import triangle.codeGenerator.entities.AddressableEntity;
+import triangle.codeGenerator.entities.BarPrimitiveRoutine;
 import triangle.codeGenerator.entities.EqualityRoutine;
 import triangle.codeGenerator.entities.FetchableEntity;
 import triangle.codeGenerator.entities.Field;
@@ -186,9 +187,13 @@ public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 		emitter.emit(OpCode.JUMPIF, Machine.trueRep, Register.CB, loopAddr);
 		return null;
 	}
-	
+
 	@Override
 	public Void visitRepeatCommand(RepeatCommand ast, Frame frame) {
+		var loopAddr = emitter.getNextInstrAddr();
+		ast.C.visit(this, frame);
+		ast.E.visit(this, frame);
+		emitter.emit(OpCode.JUMPIF, Machine.falseRep, Register.CB, loopAddr);
 		return null;
 	}
 
@@ -570,7 +575,7 @@ public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 		if (frame == null) { // in this case, we're just using the frame to wrap up the size
 			frame = Frame.Initial;
 		}
-		
+
 		var offset = frame.getSize();
 		int fieldSize;
 		if (ast.entity == null) {
@@ -717,14 +722,14 @@ public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 	}
 
 	/**
-	 * in the following we associate the primitive routines (Primitive.*)
-	 * and the primitive types (Machine.*) in the abstract machine with 
-	 * the relevant std env declarations. 
-	 * The primitive routines are listed in Table C3 (P411) of the PLPJ book, 
-	 * and Table 3 of the Triangle guide
+	 * in the following we associate the primitive routines (Primitive.*) and the
+	 * primitive types (Machine.*) in the abstract machine with the relevant std env
+	 * declarations. The primitive routines are listed in Table C3 (P411) of the
+	 * PLPJ book, and Table 3 of the Triangle guide
 	 */
 	private final void elaborateStdEnvironment() {
 		tableDetailsReqd = false;
+		StdEnvironment.barDecl.entity = new BarPrimitiveRoutine();
 		elaborateStdConst(StdEnvironment.falseDecl, Machine.falseRep);
 		elaborateStdConst(StdEnvironment.trueDecl, Machine.trueRep);
 		elaborateStdPrimRoutine(StdEnvironment.notDecl, Primitive.NOT);
@@ -757,7 +762,8 @@ public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 	boolean tableDetailsReqd;
 
 	/**
-	 * called by all visitor methods here; could be used to insert debugging information
+	 * called by all visitor methods here; could be used to insert debugging
+	 * information
 	 */
 	public static void writeTableDetails(AbstractSyntaxTree ast) {
 	}

@@ -35,7 +35,7 @@ public final class Scanner {
 		return (c >= '0' && c <= '9');
 	}
 
-	// isOperator returns true iff the given character is an operator character.
+	// isOperator returns true if the given character is an operator character.
 
 	public static boolean isOperator(char c) {
 		return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '\\'
@@ -67,16 +67,16 @@ public final class Scanner {
 
 	private void scanSeparator() {
 		switch (currentChar) {
-		
+
 		// comment
-		case '!': 
+		case '!':
 			scanComment(SourceFile.EOL);
 			break;
-			
+
 		case '#':
 			scanComment(SourceFile.EOL);
 			break;
-			
+
 		case '$':
 			scanComment('$');
 			break;
@@ -90,11 +90,12 @@ public final class Scanner {
 			break;
 		}
 	}
-	
+
 	private void scanComment(char endComment) {
 		takeIt();
-		
-		// the comment ends when we reach the end of the comment or end of file (EOT - for end-of-transmission)
+
+		// the comment ends when we reach the end of the comment or end of file (EOT -
+		// for end-of-transmission)
 		while ((currentChar != endComment) && (currentChar != SourceFile.EOT))
 			takeIt();
 		if (currentChar == endComment)
