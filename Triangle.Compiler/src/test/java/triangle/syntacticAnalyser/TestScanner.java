@@ -92,6 +92,11 @@ public class TestScanner {
 	public void testSquare() {
 		compileExpectSuccess("/square.tri");
 	}
+	
+	@Test
+	public void testLoopWhile() {
+		compileExpectSuccess("/loopwhile.tri");
+	}
 
 	private void compileExpectSuccess(String filename) {
 		// build.gradle has a line sourceSets.test.resources.srcDir
