@@ -25,6 +25,7 @@ import triangle.codeGenerator.Emitter;
 import triangle.codeGenerator.Encoder;
 import triangle.contextualAnalyzer.Checker;
 import triangle.optimiser.ConstantFolder;
+import triangle.optimiser.SummaryVisitor;
 import triangle.syntacticAnalyzer.Parser;
 import triangle.syntacticAnalyzer.Scanner;
 import triangle.syntacticAnalyzer.SourceFile;
@@ -42,17 +43,20 @@ public class Compiler {
 	// that specify command line arguments for the program
 	
 	/** The filename for the object program, normally obj.tam. */
-	@Argument(alias = "o", description = "name of the source file", required = true)
+	@Argument(alias = "on", description = "name of the source file", required = true)
 	static String objectName = "obj.tam";
 	    
-	@Argument(alias = "s", description = "whether to show the tree produced", required = false)
+	@Argument(alias = "st", description = "whether to show the tree produced", required = false)
 	static boolean showTree = false;
 	
 	@Argument(alias = "f", description = "whether folding will be done", required = false)
 	static boolean folding = false;
 	
-	@Argument(alias = "a", description = "whether to show the tree after folding", required = false)
+	@Argument(alias = "sta", description = "whether to show the tree after folding", required = false)
 	static boolean showTreeAfter = false;
+	
+	@Argument(alias = "ss", description = "whether to show the visitor statistics", required = false)
+	static boolean showStats = false;
 
 	private static Scanner scanner;
 	private static Parser parser;
@@ -78,7 +82,7 @@ public class Compiler {
 	 * @return true iff the source program is free of compile-time errors, otherwise
 	 *         false.
 	 */
-	static boolean compileProgram(String sourceName, String objectName, boolean showingAST, boolean showingTable, boolean folding, boolean showingASTAfter) {
+	static boolean compileProgram(String sourceName, String objectName, boolean showingAST, boolean showingTable, boolean folding, boolean showingASTAfter, boolean showingStats) {
 
 		System.out.println("********** " + "Triangle Compiler (Java Version 2.1)" + " **********");
 
@@ -115,6 +119,11 @@ public class Compiler {
 					drawer.draw(theAST);
 				}
 			}
+			if (showingStats) {
+				SummaryVisitor sv = new SummaryVisitor();
+				theAST.visit(sv);
+				System.out.println(sv.getCounts());
+			}
 		
 			if (reporter.getNumErrors() == 0) {
 				System.out.println("Code Generation ...");
@@ -142,7 +151,7 @@ public class Compiler {
 	public static void main(String[] args) {
 
 		if (args.length < 1) {
-			System.out.println("Usage: tc filename [-o=outputfilename] [tree] [folding] [treeAfter]");
+			System.out.println("Usage: tc filename [-o=outputfilename] [tree] [folding] [treeAfter] [showStats]");
 			System.exit(1);
 		}
 		
@@ -150,7 +159,7 @@ public class Compiler {
 
 		String sourceName = args[0];
 		
-		var compiledOK = compileProgram(sourceName, objectName, showTree, false, folding, showTreeAfter);
+		var compiledOK = compileProgram(sourceName, objectName, showTree, false, folding, showTreeAfter, showStats);
 
 		if (!showTree) {
 			System.exit(compiledOK ? 0 : 1);
@@ -168,6 +177,9 @@ public class Compiler {
 				folding = true;
 			} else if (sl.equals("treeafter")) {
 				showTreeAfter = true;
+			}
+			else if (sl.equals("showstats")) {
+				showStats = true;
 			}
 		}
 	}
