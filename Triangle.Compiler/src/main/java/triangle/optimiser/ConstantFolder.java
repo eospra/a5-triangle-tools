@@ -362,11 +362,11 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 	@Override
 	public AbstractSyntaxTree visitUnaryExpression(UnaryExpression ast, Void arg) {
 		AbstractSyntaxTree replacement = ast.E.visit(this);
+		ast.O.visit(this);
 		if (replacement != null) {
-			ast.E = (Expression) replacement;
+			return foldUnaryExpression(replacement, ast.O);
 		}
 
-		ast.O.visit(this);
 		return null;
 	}
 
@@ -583,7 +583,13 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 		ast.V.visit(this);
 		return null;
 	}
-
+	/**
+	 * 
+	 * @param node1 the AST of the left half of the expression
+	 * @param node2 the AST of the right half of the expression
+	 * @param o the operator of the expression
+	 * @return the folded AST or a null if folding was not possible
+	 */
 	public AbstractSyntaxTree foldBinaryExpression(AbstractSyntaxTree node1, AbstractSyntaxTree node2, Operator o) {
 		// the only case we know how to deal with for now is two IntegerExpressions
 		if ((node1 instanceof IntegerExpression) && (node2 instanceof IntegerExpression)) {
@@ -643,6 +649,30 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 		}
 
 		// any unhandled situation (i.e., not foldable) is ignored
+		return null;
+	}
+	/**
+	 * 
+	 * @param node the AST of the expression
+	 * @param o the operator in the expression
+	 * @return the folded AST or a null if folding was not possible
+	 */
+	public AbstractSyntaxTree foldUnaryExpression(AbstractSyntaxTree node, Operator o) {
+		if (node instanceof IntegerExpression) {
+			int num = (Integer.parseInt(((IntegerExpression) node).IL.spelling));
+			Object foldedValue = null;
+			
+			if (o.decl == StdEnvironment.barDecl) {
+				foldedValue = num * 100;
+			}
+			
+			if (foldedValue instanceof Integer) {
+				IntegerLiteral il = new IntegerLiteral(foldedValue.toString(), node.getPosition());
+				IntegerExpression ie = new IntegerExpression(il, node.getPosition());
+				ie.type = StdEnvironment.integerType;
+				return ie;
+			}
+		}
 		return null;
 	}
 

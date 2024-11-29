@@ -25,6 +25,7 @@ import triangle.codeGenerator.Emitter;
 import triangle.codeGenerator.Encoder;
 import triangle.contextualAnalyzer.Checker;
 import triangle.optimiser.ConstantFolder;
+import triangle.optimiser.Hoister;
 import triangle.optimiser.SummaryVisitor;
 import triangle.syntacticAnalyzer.Parser;
 import triangle.syntacticAnalyzer.Scanner;
@@ -38,25 +39,29 @@ import triangle.treeDrawer.Drawer;
  * @author Deryck F. Brown
  */
 public class Compiler {
-	
-	// the cli parser library lets us make instance variables with annotations like this
+
+	// the cli parser library lets us make instance variables with annotations like
+	// this
 	// that specify command line arguments for the program
-	
+
 	/** The filename for the object program, normally obj.tam. */
 	@Argument(alias = "on", description = "name of the source file", required = true)
 	static String objectName = "obj.tam";
-	    
+
 	@Argument(alias = "st", description = "whether to show the tree produced", required = false)
 	static boolean showTree = false;
-	
+
 	@Argument(alias = "f", description = "whether folding will be done", required = false)
 	static boolean folding = false;
-	
+
 	@Argument(alias = "sta", description = "whether to show the tree after folding", required = false)
 	static boolean showTreeAfter = false;
-	
+
 	@Argument(alias = "ss", description = "whether to show the visitor statistics", required = false)
 	static boolean showStats = false;
+
+	@Argument(alias = "h", description = "whether hoisting will be donw", required = false)
+	static boolean hoisting = false;
 
 	private static Scanner scanner;
 	private static Parser parser;
@@ -74,15 +79,16 @@ public class Compiler {
 	 *
 	 * @param sourceName   the name of the file containing the source program.
 	 * @param objectName   the name of the file containing the object program.
-	 * @param showingAST   true iff the AST is to be displayed after contextual
+	 * @param showingAST   true if the AST is to be displayed after contextual
 	 *                     analysis
-	 * @param showingTable true iff the object description details are to be
+	 * @param showingTable true if the object description details are to be
 	 *                     displayed during code generation (not currently
 	 *                     implemented).
-	 * @return true iff the source program is free of compile-time errors, otherwise
+	 * @return true if the source program is free of compile-time errors, otherwise
 	 *         false.
 	 */
-	static boolean compileProgram(String sourceName, String objectName, boolean showingAST, boolean showingTable, boolean folding, boolean showingASTAfter, boolean showingStats) {
+	static boolean compileProgram(String sourceName, String objectName, boolean showingAST, boolean showingTable,
+			boolean folding, boolean showingASTAfter, boolean showingStats, boolean hoisting) {
 
 		System.out.println("********** " + "Triangle Compiler (Java Version 2.1)" + " **********");
 
@@ -101,7 +107,7 @@ public class Compiler {
 		emitter = new Emitter(reporter);
 		encoder = new Encoder(emitter, reporter);
 		drawer = new Drawer();
-		
+
 		// scanner.enableDebugging();
 		theAST = parser.parseProgram(); // 1st pass
 		if (reporter.getNumErrors() == 0) {
@@ -119,12 +125,16 @@ public class Compiler {
 					drawer.draw(theAST);
 				}
 			}
+			if (hoisting) {
+				theAST.visit(new Hoister());
+				drawer.draw(theAST);
+			}
 			if (showingStats) {
 				SummaryVisitor sv = new SummaryVisitor();
 				theAST.visit(sv);
 				System.out.println(sv.getCounts());
 			}
-		
+
 			if (reporter.getNumErrors() == 0) {
 				System.out.println("Code Generation ...");
 				encoder.encodeRun(theAST, showingTable); // 3rd pass
@@ -141,7 +151,6 @@ public class Compiler {
 		return successful;
 	}
 
-	
 	/**
 	 * Triangle compiler main program.
 	 *
@@ -151,21 +160,23 @@ public class Compiler {
 	public static void main(String[] args) {
 
 		if (args.length < 1) {
-			System.out.println("Usage: tc filename [-o=outputfilename] [tree] [folding] [treeAfter] [showStats]");
+			System.out.println(
+					"Usage: tc filename [-o=outputfilename] [tree] [folding] [treeAfter] [showStats] [hoisting]");
 			System.exit(1);
 		}
-		
+
 		parseArgs(args);
 
 		String sourceName = args[0];
-		
-		var compiledOK = compileProgram(sourceName, objectName, showTree, false, folding, showTreeAfter, showStats);
+
+		var compiledOK = compileProgram(sourceName, objectName, showTree, false, folding, showTreeAfter, showStats,
+				hoisting);
 
 		if (!showTree) {
 			System.exit(compiledOK ? 0 : 1);
 		}
 	}
-	
+
 	private static void parseArgs(String[] args) {
 		for (String s : args) {
 			var sl = s.toLowerCase();
@@ -177,9 +188,10 @@ public class Compiler {
 				folding = true;
 			} else if (sl.equals("treeafter")) {
 				showTreeAfter = true;
-			}
-			else if (sl.equals("showstats")) {
+			} else if (sl.equals("showstats")) {
 				showStats = true;
+			} else if (sl.equals("hoisting")) {
+				hoisting = true;
 			}
 		}
 	}

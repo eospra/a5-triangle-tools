@@ -316,7 +316,7 @@ public class Parser {
 					VnameExpression vne = new VnameExpression(vAST, commandPos);
 					// the operator will be a * (each operator is just defined by its spelling)
 					Operator op = new Operator("*", commandPos);
-					// now we assemble the expressions into a BinaryExpression for the a + 1
+					// now we assemble the expressions into a BinaryExpression for the a * a
 					Expression eAST = new BinaryExpression(vne, op, vne, commandPos);
 					// this sets the last line of the command for debugging purposes
 					finish(commandPos);

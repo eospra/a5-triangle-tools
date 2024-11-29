@@ -1,6 +1,6 @@
 package triangle.optimiser;
 
-
+import java.util.ArrayList;
 
 import triangle.abstractSyntaxTrees.AbstractSyntaxTree;
 import triangle.abstractSyntaxTrees.Program;
@@ -83,7 +83,7 @@ import triangle.abstractSyntaxTrees.vnames.DotVname;
 import triangle.abstractSyntaxTrees.vnames.SimpleVname;
 import triangle.abstractSyntaxTrees.vnames.SubscriptVname;
 
-public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSyntaxTree>,
+public class Hoister implements ActualParameterVisitor<Void, AbstractSyntaxTree>,
 		ActualParameterSequenceVisitor<Void, AbstractSyntaxTree>, ArrayAggregateVisitor<Void, AbstractSyntaxTree>,
 		CommandVisitor<Void, AbstractSyntaxTree>, DeclarationVisitor<Void, AbstractSyntaxTree>,
 		ExpressionVisitor<Void, AbstractSyntaxTree>, FormalParameterSequenceVisitor<Void, AbstractSyntaxTree>,
@@ -94,16 +94,10 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 	{
 
 	}
-	//store the counts 
-	private int binaryCount = 0; 
-	private int ifCount = 0;
-	private int whileCount = 0;
-	
-	//provide the counts as a string
-	public String getCounts() {
-		return ("Binary Expressions: " + binaryCount + "\nIf Commands: " + ifCount + "\nWhile Commands: " + whileCount);
-	}
-	
+
+	// an array list to hold the updated identifiers, static so it can be seen by
+	// while and expression hoisting
+	protected static ArrayList<String> updatedIdentifiers = new ArrayList<String>();
 
 	@Override
 	public AbstractSyntaxTree visitConstFormalParameter(ConstFormalParameter ast, Void arg) {
@@ -163,7 +157,10 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitSubscriptVname(SubscriptVname ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		ast.V.visit(this);
 		return null;
 	}
@@ -214,7 +211,10 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitMultipleRecordAggregate(MultipleRecordAggregate ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		ast.I.visit(this);
 		ast.RA.visit(this);
 		return null;
@@ -222,7 +222,10 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitSingleRecordAggregate(SingleRecordAggregate ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		ast.I.visit(this);
 		return null;
 	}
@@ -278,8 +281,7 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 	}
 
 	@Override
-	public AbstractSyntaxTree visitBinaryExpression(BinaryExpression ast, Void arg) { 
-		binaryCount ++;
+	public AbstractSyntaxTree visitBinaryExpression(BinaryExpression ast, Void arg) {
 		ast.E1.visit(this);
 		ast.E2.visit(this);
 		ast.O.visit(this);
@@ -306,9 +308,18 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitIfExpression(IfExpression ast, Void arg) {
-		ast.E1.visit(this);
-		ast.E2.visit(this);
-		ast.E3.visit(this);
+		AbstractSyntaxTree replacement1 = ast.E1.visit(this);
+		if (replacement1 != null) {
+			ast.E1 = (Expression) replacement1;
+		}
+		AbstractSyntaxTree replacement2 = ast.E2.visit(this);
+		if (replacement2 != null) {
+			ast.E2 = (Expression) replacement2;
+		}
+		AbstractSyntaxTree replacement3 = ast.E3.visit(this);
+		if (replacement3 != null) {
+			ast.E3 = (Expression) replacement3;
+		}
 
 		return null;
 	}
@@ -321,7 +332,10 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 	@Override
 	public AbstractSyntaxTree visitLetExpression(LetExpression ast, Void arg) {
 		ast.D.visit(this);
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
@@ -333,7 +347,11 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitUnaryExpression(UnaryExpression ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
+
 		ast.O.visit(this);
 		return null;
 	}
@@ -355,14 +373,20 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitConstDeclaration(ConstDeclaration ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		ast.I.visit(this);
 		return null;
 	}
 
 	@Override
 	public AbstractSyntaxTree visitFuncDeclaration(FuncDeclaration ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		ast.FPS.visit(this);
 		ast.I.visit(this);
 		ast.T.visit(this);
@@ -408,7 +432,10 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitAssignCommand(AssignCommand ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		ast.V.visit(this);
 		return null;
 	}
@@ -425,10 +452,12 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitIfCommand(IfCommand ast, Void arg) {
-		ifCount ++;
 		ast.C1.visit(this);
 		ast.C2.visit(this);
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
@@ -439,46 +468,88 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 		return null;
 	}
 
+	/**
+	 * there is no clear way to update these commands as they are final, perhaps
+	 * they need to no longer be final but for now it'll stay. a possible method,
+	 * aspects of which are implemented below, is that if a command is not null, ie.
+	 * it is a while command that can be hoisted, a new sequantial command is added
+	 * with the let command (represented here by the empty command) on one side and
+	 * the while command on the other. another issue is how to get the expression
+	 * from the assignment command, that might be helped by way of a hash map or
+	 * something
+	 */
 	@Override
 	public AbstractSyntaxTree visitSequentialCommand(SequentialCommand ast, Void arg) {
-		ast.C1.visit(this);
-		ast.C2.visit(this);
+		AbstractSyntaxTree replacement1 = ast.C1.visit(this);
+		AbstractSyntaxTree replacement2 = ast.C2.visit(this);
+		if (replacement1 != null) {
+			System.out.println("seq1");
+		}
+		if (replacement2 != null) {
+			System.out.println("seq2");
+			EmptyCommand test = new EmptyCommand(ast.getPosition());
+			SequentialCommand invariant = new SequentialCommand(ast.C2, test, ast.getPosition());
+		}
+		return null;
+	}
+
+	/**
+	 * checks the command for expressions that can be hoisted, if it finds one it
+	 * returns the ast rather than null. This ast is currently getting lost so the
+	 * method is always returning null, it wasn't always like that, it did get
+	 * broken, rip
+	 */
+	@Override
+	public AbstractSyntaxTree visitWhileCommand(WhileCommand ast, Void arg) {
+		AbstractSyntaxTree commandReplacement = ast.C.visit(new WhileHoister());
+		if (commandReplacement != null) {
+			System.out.println("not null wc");
+			return ast;
+		}
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
 	@Override
-	public AbstractSyntaxTree visitWhileCommand(WhileCommand ast, Void arg) {
-		whileCount ++;
-		ast.C.visit(this);
-		ast.E.visit(this);
-		return null;
-	}
-	
-	@Override
 	public AbstractSyntaxTree visitLoopWhileCommand(LoopWhileCommand ast, Void arg) {
 		ast.C1.visit(this);
 		ast.C2.visit(this);
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
 	@Override
 	public AbstractSyntaxTree visitRepeatCommand(RepeatCommand ast, Void arg) {
 		ast.C.visit(this);
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
 	@Override
 	public AbstractSyntaxTree visitMultipleArrayAggregate(MultipleArrayAggregate ast, Void arg) {
 		ast.AA.visit(this);
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
 	@Override
 	public AbstractSyntaxTree visitSingleArrayAggregate(SingleArrayAggregate ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
@@ -502,7 +573,10 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitConstActualParameter(ConstActualParameter ast, Void arg) {
-		ast.E.visit(this);
+		AbstractSyntaxTree replacement = ast.E.visit(this);
+		if (replacement != null) {
+			ast.E = (Expression) replacement;
+		}
 		return null;
 	}
 
@@ -523,6 +597,5 @@ public class SummaryVisitor implements ActualParameterVisitor<Void, AbstractSynt
 		ast.V.visit(this);
 		return null;
 	}
-
 
 }
